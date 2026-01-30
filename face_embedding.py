@@ -46,7 +46,7 @@ def get_embedding(frame):
         img_path=frame,
         model_name="Facenet",
         detector_backend="opencv",
-        enforce_detection=False,
+        enforce_detection=True,
     )
     return np.array(reps[0]["embedding"])
 

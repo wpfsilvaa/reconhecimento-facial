@@ -170,7 +170,8 @@ def guided_enroll(cap, user_id, face_cascade, instructions=None):
 # Função de cadastro guiado com captura manual
 def guided_enroll_gui_manual(cap, user_id, face_cascade, instructions,
                               capture_event, progress_callback=None, 
-                              status_callback=None, frame_getter=None):
+                              status_callback=None, frame_getter=None,
+                              thumbnail_callback=None):
     """
     Versão do cadastro com captura manual via botão.
     
@@ -183,6 +184,7 @@ def guided_enroll_gui_manual(cap, user_id, face_cascade, instructions,
         progress_callback: Função para atualizar progresso (0.0 a 1.0)
         status_callback: Função para atualizar status (texto, cor)
         frame_getter: Função que retorna o frame atual da câmera
+        thumbnail_callback: Função para salvar primeira foto como miniatura
     """
     if instructions is None:
         instructions = [
@@ -238,6 +240,10 @@ def guided_enroll_gui_manual(cap, user_id, face_cascade, instructions,
         if status_callback:
             status_callback(f"Foto {i+1} capturada! ✓", "green")
             time.sleep(0.5)  # Pequena pausa para feedback visual
+        
+        # Salvar primeira foto como miniatura
+        if i == 0 and thumbnail_callback:
+            thumbnail_callback(user_id, frame.copy())
 
     if len(frames) == 0:
         if status_callback:
