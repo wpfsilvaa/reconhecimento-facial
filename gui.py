@@ -1398,6 +1398,7 @@ class FaceRecognitionApp(ctk.CTk):
 
         def on_closing():
             window_data['is_running'] = False
+            self.reload_database()
             improve_window.destroy()
 
         improve_window.protocol("WM_DELETE_WINDOW", on_closing)
@@ -1650,7 +1651,7 @@ class FaceRecognitionApp(ctk.CTk):
                 print(message)
                 self.selected_user_var.set("")
                 self.refresh_users_list()
-                self.user_info_label.configure(text="Usuário deletado")
+                self.reload_database()
                 self.show_success(message)
             else:
                 self.show_error(message)

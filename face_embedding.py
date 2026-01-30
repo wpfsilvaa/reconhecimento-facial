@@ -1,52 +1,53 @@
-
 import numpy as np
 from deepface import DeepFace
 from functools import lru_cache
 import hashlib
 
-# ===== OTIMIZAÇÃO 1: Cache Global do Modelo =====
+# ===== Cache global do modelo =====
 _model = None
-_model_lock = None
 
 def _get_model():
-    """Carrega o modelo Facenet uma única vez globalmente."""
     global _model
     if _model is None:
         _model = DeepFace.build_model("Facenet")
     return _model
 
 
-# ===== OTIMIZAÇÃO 2: LRU Cache para Embeddings (Tarefa #5) =====
-# Memoriza últimos 100 embeddings processados para evitar recompute
-@lru_cache(maxsize=100)
-def _get_embedding_cached(frame_hash):
-    """Retorna embedding cacheado usando hash do frame."""
-    # Nota: O hash é calculado externamente; essa função apenas armazena no cache
-    return None  # Será sobrescrita dinamicamente
+def _frame_hash(frame: np.ndarray) -> str:
+    """
+    Hash determinístico do conteúdo do frame.
+    """
+    return hashlib.sha256(frame.tobytes()).hexdigest()
 
 
-def get_embedding(frame):
+@lru_cache(maxsize=128)
+def _compute_embedding_cached(frame_hash: str, frame_bytes: bytes, shape: tuple):
     """
-    Gera o embedding facial usando DeepFace com modelo em cache global.
-    
-    Otimizações aplicadas:
-    - Modelo Facenet carregado uma única vez na memória (não em cada embedding)
-    - Backend 'opencv' é leve (evita retinaface que é pesado)
-    - LRU Cache para embeddings repetidos (100 últimos frames)
-    
-    Performance esperada: 5-10x mais rápido que versão original
+    Cache real de embeddings.
+    Agora o reshape usa o shape correto do frame.
     """
-    global _model
-    
-    # Carrega modelo uma única vez
-    model = _get_model()
-    
-    # DeepFace.represent agora reutiliza o modelo em cache
+    frame = np.frombuffer(frame_bytes, dtype=np.uint8).reshape(shape)
+
+    _get_model()
+
     reps = DeepFace.represent(
         img_path=frame,
         model_name="Facenet",
         detector_backend="opencv",
         enforce_detection=True,
     )
+
     return np.array(reps[0]["embedding"])
 
+
+def get_embedding(frame: np.ndarray) -> np.ndarray:
+    """
+    API pública.
+    """
+    frame_hash = _frame_hash(frame)
+
+    return _compute_embedding_cached(
+        frame_hash,
+        frame.tobytes(),
+        frame.shape
+    )

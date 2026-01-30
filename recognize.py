@@ -1,7 +1,8 @@
-
+import cv2
 import os
 import numpy as np
 from face_embedding import get_embedding
+
 
 THRESHOLD = 10.0
 

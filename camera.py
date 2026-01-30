@@ -44,8 +44,6 @@ def get_camera_supported_resolutions(cap, fps=30):
         if actual_width == width and actual_height == height:
             supported.append((width, height))
             print(f"  ✅ {width}x{height}")
-        else:
-            print(f"  ❌ {width}x{height} (câmera retornou {actual_width}x{actual_height})")
     
     if supported:
         print(f"📊 Resoluções suportadas: {len(supported)}")
